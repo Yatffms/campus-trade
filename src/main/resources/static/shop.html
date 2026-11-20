@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>校园集市 · 二手交易</title>
+<style>
+  :root{
+    --brand:#ff5a1f; --brand-dark:#e14a12; --brand-soft:#fff1ea;
+    --ink:#0f172a; --muted:#64748b; --line:#e8edf3; --bg:#f6f8fb;
+    --card:#fff; --radius:16px; --shadow:0 2px 10px rgba(15,23,42,.05);
+    --shadow-hover:0 14px 30px rgba(15,23,42,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  /* .btn 用了 display:inline-flex，会盖掉 [hidden] 的默认 display:none */
+  [hidden]{display:none !important}
+  html,body{height:100%}
+  body{
+    font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    background:var(--bg); color:var(--ink); font-size:14px; line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  img{display:block;max-width:100%}
+  button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input,textarea,select{font:inherit;color:inherit;outline:none}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 20px}
+
+  /* ---------- 顶部导航 ---------- */
+  header{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;gap:22px;height:64px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:18px;letter-spacing:.2px;flex-shrink:0}
+  .logo-mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#ff7a3d,#ff4d0f);display:grid;place-items:center;color:#fff;font-size:16px;box-shadow:0 4px 12px rgba(255,90,31,.35)}
+  .search{flex:1;max-width:520px;position:relative}
+  .search input{width:100%;height:40px;border-radius:999px;border:1px solid var(--line);background:#f3f5f9;padding:0 44px 0 18px;transition:.2s}
+  .search input:focus{background:#fff;border-color:var(--brand);box-shadow:0 0 0 4px rgba(255,90,31,.10)}
+  .search button{position:absolute;right:4px;top:4px;width:32px;height:32px;border-radius:50%;background:var(--brand);color:#fff;display:grid;place-items:center}
+  .nav-links{display:flex;align-items:center;gap:6px;margin-left:auto}
+  .nav-link{padding:8px 12px;border-radius:10px;color:var(--muted);font-weight:600;display:flex;align-items:center;gap:6px;transition:.15s}
+  .nav-link:hover{color:var(--ink);background:#f1f4f9}
+  .nav-link.active{color:var(--brand);background:var(--brand-soft)}
+  .badge-dot{min-width:17px;height:17px;padding:0 5px;border-radius:9px;background:var(--brand);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center}
+  .user-chip{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 5px;border-radius:999px;border:1px solid var(--line);background:#fff;font-weight:600}
+  .user-chip:hover{border-color:#d6dde8}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:38px;padding:0 18px;border-radius:10px;font-weight:700;transition:.18s;white-space:nowrap}
+  .btn.primary{background:var(--brand);color:#fff;box-shadow:0 6px 16px rgba(255,90,31,.25)}
+  .btn.primary:hover{background:var(--brand-dark);transform:translateY(-1px)}
+  .btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .btn.ghost:hover{border-color:#cfd8e3;background:#fbfcfe}
+  .btn.small{height:32px;padding:0 12px;font-size:13px;border-radius:8px}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important}
+  .btn.block{width:100%}
+
+  /* ---------- 首屏 ---------- */
+  .hero{margin:22px 0 8px;border-radius:22px;overflow:hidden;position:relative;background:linear-gradient(120deg,#fff4ee 0%,#ffece0 45%,#eef4ff 100%);border:1px solid #f4e7dd}
+  .hero-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:30px 34px}
+  .hero h1{font-size:26px;letter-spacing:-.4px}
+  .hero p{color:#7a6a5f;margin-top:8px;max-width:440px}
+  .hero-stats{display:flex;gap:26px;margin-top:18px}
+  .hero-stat b{display:block;font-size:22px;letter-spacing:-.5px}
+  .hero-stat span{color:var(--muted);font-size:12px}
+  .hero-side{width:272px;flex-shrink:0;background:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.9);border-radius:16px;padding:14px 16px;box-shadow:0 12px 30px rgba(255,90,31,.12);backdrop-filter:blur(6px)}
+  .hero-side h4{font-size:12px;color:#94644f;font-weight:800;letter-spacing:.4px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+  .hero-row{display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px dashed rgba(148,100,79,.18);cursor:pointer;border-radius:8px;transition:.15s}
+  .hero-row:hover{background:rgba(255,90,31,.06)}
+  .hero-row:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+  .hero-row:last-child{border-bottom:none}
+  .hero-row .ph{width:34px;height:34px;border-radius:9px;background:#f1e7e0;display:grid;place-items:center;font-size:15px;flex-shrink:0;overflow:hidden}
+  .hero-row .ph img{width:100%;height:100%;object-fit:cover}
+  .hero-row .t{flex:1;min-width:0;font-size:12.5px;font-weight:700;color:#4b3a31;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hero-row .p{font-size:12.5px;font-weight:800;color:var(--brand)}
+
+  /* ---------- 筛选 ---------- */
+  .toolbar{display:flex;align-items:center;gap:10px;margin:18px 0 16px;flex-wrap:wrap}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;flex:1}
+  .chip{padding:7px 14px;border-radius:999px;background:#fff;border:1px solid var(--line);color:var(--muted);font-weight:600;transition:.15s}
+  .chip:hover{border-color:#cfd8e3;color:var(--ink)}
+  .chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .sort{padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--muted);font-weight:600}
+  .result-line{color:var(--muted);font-size:13px;margin-bottom:12px}
+
+  /* ---------- 商品网格 ---------- */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:18px}
+  .card{background:var(--card);border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow);transition:.22s;cursor:pointer;position:relative;display:flex;flex-direction:column}
+  .card:hover{transform:translateY(-4px);box-shadow:var(--shadow-hover);border-color:#e0e7f0}
+  .thumb{aspect-ratio:4/3;background:linear-gradient(135deg,#eef2f7,#e2e8f0);position:relative;overflow:hidden}
+  .thumb img{width:100%;height:100%;object-fit:cover;transition:transform .35s}
+  .card:hover .thumb img{transform:scale(1.04)}
+  .thumb .ph{position:absolute;inset:0;display:grid;place-items:center;font-size:40px;color:#b6c2d1}
+  .tag{position:absolute;left:10px;top:10px;padding:4px 9px;border-radius:999px;background:rgba(15,23,42,.62);color:#fff;font-size:11px;font-weight:700;backdrop-filter:blur(4px)}
+  .sold-mask{position:absolute;inset:0;background:rgba(15,23,42,.42);color:#fff;display:grid;place-items:center;font-weight:800;letter-spacing:2px;font-size:16px}
+  .card-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .card-title{font-size:14.5px;font-weight:700;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:42px}
+  .price{color:var(--brand);font-weight:800;font-size:19px;letter-spacing:-.5px;display:flex;align-items:baseline;gap:7px}
+  .price small{font-size:12px;font-weight:700}
+  .price s{color:#9aa7b6;font-weight:500;font-size:12.5px}
+  .card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--muted);font-size:12px;margin-top:auto}
+  .seller{display:flex;align-items:center;gap:6px;min-width:0}
+  .seller span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .avatar{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#ffb27a,#ff6a2b);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:800;flex-shrink:0}
+  .fav-btn{position:absolute;right:10px;top:10px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.92);display:grid;place-items:center;box-shadow:0 2px 8px rgba(15,23,42,.12);transition:.15s;opacity:0}
+  .card:hover .fav-btn{opacity:1}
+  .fav-btn.on{opacity:1;color:var(--brand)}
+  .fav-btn:hover{transform:scale(1.08)}
+
+  /* ---------- 骨架屏 / 空态 ---------- */
+  .skel{background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .skel .s1{aspect-ratio:4/3;background:#eef2f7}
+  .skel .s2{height:14px;border-radius:6px;background:#eef2f7;margin:14px}
+  .skel .s3{height:14px;width:60%;border-radius:6px;background:#eef2f7;margin:0 14px 16px}
+  .empty{text-align:center;padding:64px 20px;color:var(--muted)}
+  .empty .ico{font-size:44px;margin-bottom:10px}
+  .empty b{display:block;color:var(--ink);font-size:15px;margin-bottom:6px}
+
+  /* ---------- 分页 ---------- */
+  .pager{display:flex;justify-content:center;align-items:center;gap:10px;margin:32px 0 44px;color:var(--muted)}
+  .pager button{height:36px;min-width:36px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:700;color:var(--muted);transition:.15s}
+  .pager button:hover:not(:disabled){border-color:#cfd8e3;color:var(--ink);background:#fbfcfe}
+  .pager button:disabled{opacity:.4;cursor:not-allowed}
+  .pager .pages{display:flex;gap:6px}
+  .pager .pages button{padding:0;width:36px}
+  .pager .pages button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+  /* ---------- 抽屉（详情） ---------- */
+  .drawer-mask{position:fixed;inset:0;background:rgba(15,23,42,.44);backdrop-filter:blur(2px);z-index:80;opacity:0;pointer-events:none;transition:.22s}
+  .drawer-mask.on{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:0;height:100%;width:min(560px,100%);background:#fff;z-index:81;transform:translateX(102%);transition:transform .26s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:-20px 0 60px rgba(15,23,42,.18)}
+  .drawer.on{transform:none}
+  .drawer-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--line)}
+  .drawer-head b{font-size:15px}
+  .x{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;color:var(--muted)}
+  .x:hover{background:#f1f4f9;color:var(--ink)}
+  .drawer-body{flex:1;overflow:auto;padding:20px}
+  .detail-cover{border-radius:14px;overflow:hidden;background:#eef2f7;aspect-ratio:4/3}
+  .detail-cover img{width:100%;height:100%;object-fit:cover}
+  .detail-title{font-size:20px;font-weight:800;margin:16px 0 8px;line-height:1.4}
+  .detail-price{display:flex;align-items:baseline;gap:10px}
+  .detail-desc{color:#475569;margin:14px 0;white-space:pre-wrap;line-height:1.75}
+  .seller-card{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:#f7f9fc;border:1px solid var(--line);margin:16px 0}
+  .seller-card .avatar{width:42px;height:42px;font-size:15px}
+  .seller-card b{display:block}
+  .seller-card small{color:var(--muted)}
+  .drawer-foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:10px;background:#fff}
+  .stat-row{display:flex;gap:18px;color:var(--muted);font-size:12.5px;margin-top:10px}
+
+  /* ---------- 留言 ---------- */
+  .section-title{font-weight:800;margin:22px 0 10px;display:flex;align-items:center;gap:8px}
+  .msg{padding:12px 0;border-bottom:1px dashed var(--line)}
+  .msg:last-child{border-bottom:none}
+  .msg-head{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;margin-bottom:5px}
+  .msg-content{color:#334155;white-space:pre-wrap}
+  .msg-form{display:flex;gap:8px;margin-top:12px}
+  .msg-form input{flex:1;height:40px;border-radius:10px;border:1px solid var(--line);padding:0 12px;background:#f8fafc}
+  .msg-form input:focus{border-color:var(--brand);background:#fff}
+
+  /* ---------- 订单 ---------- */
+  .orders-head{display:flex;align-items:center;gap:12px;margin:24px 0 16px}
+  .seg{display:inline-flex;background:#eef2f7;border-radius:12px;padding:4px}
+  .seg button{padding:8px 18px;border-radius:9px;font-weight:700;color:var(--muted)}
+  .seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(15,23,42,.10)}
+  .order-card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:16px;display:flex;gap:14px;margin-bottom:12px;box-shadow:var(--shadow)}
+  .order-card .thumb{width:96px;height:96px;border-radius:12px;flex-shrink:0;aspect-ratio:auto}
+  .order-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+  .order-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .state{font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:999px}
+  .state.wait{background:#fff7ed;color:#b45309}
+  .state.ok{background:#ecfdf5;color:#0a7d32}
+  .state.done{background:#eef2ff;color:#4338ca}
+  .state.cancel{background:#f1f5f9;color:#64748b}
+  .countdown{font-variant-numeric:tabular-nums;font-weight:800;color:#b45309;background:#fff7ed;padding:3px 9px;border-radius:999px;font-size:11.5px}
+  .countdown.timeout{background:#fee2e2;color:#b91c1c}
+  .order-title{font-weight:700;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .order-meta{color:var(--muted);font-size:12.5px}
+  .order-actions{display:flex;align-items:center;gap:8px;margin-top:4px;flex-wrap:wrap}
+
+  /* ---------- 表单 ---------- */
+  .panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:var(--shadow);max-width:760px;margin:22px auto 48px}
+  .panel h2{font-size:18px;margin-bottom:4px}
+  .panel .hint{color:var(--muted);margin-bottom:20px}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-weight:700;margin-bottom:7px;font-size:13px}
+  .field input[type=text],.field input[type=number],.field textarea,.field select{
+    width:100%;border:1px solid var(--line);border-radius:11px;padding:11px 13px;background:#f8fafc;transition:.15s
+  }
+  .field input:focus,.field textarea:focus,.field select:focus{border-color:var(--brand);background:#fff;box-shadow:0 0 0 4px rgba(255,90,31,.10)}
+  .field textarea{min-height:110px;resize:vertical}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .cover-drop{border:1.5px dashed #cfd8e3;border-radius:14px;padding:18px;text-align:center;color:var(--muted);background:#fafcff;cursor:pointer;transition:.15s}
+  .cover-drop:hover{border-color:var(--brand);color:var(--brand);background:#fff8f4}
+  .cover-drop img{max-height:180px;margin:0 auto;border-radius:10px}
+  .cover-actions{display:flex;gap:8px;justify-content:center;margin-top:10px}
+
+  /* ---------- 登录弹窗 ---------- */
+  .modal-mask{position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:90;display:grid;place-items:center;padding:20px;opacity:0;pointer-events:none;transition:.2s}
+  .modal-mask.on{opacity:1;pointer-events:auto}
+  .modal{background:#fff;border-radius:20px;padding:26px;width:min(400px,100%);box-shadow:0 30px 80px rgba(15,23,42,.3);transform:translateY(12px) scale(.98);transition:.2s}
+  .modal-mask.on .modal{transform:none}
+  .modal h3{font-size:19px;margin-bottom:4px}
+  .modal .sub{color:var(--muted);margin-bottom:18px}
+  .tabs{display:flex;gap:6px;background:#eef2f7;border-radius:11px;padding:4px;margin-bottom:16px}
+  .tabs button{flex:1;padding:8px;border-radius:8px;font-weight:700;color:var(--muted)}
+  .tabs button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(15,23,42,.1)}
+  .form-msg{color:#b91c1c;font-size:13px;min-height:18px;margin:-6px 0 8px}
+
+  /* ---------- toast ---------- */
+  #toast{position:fixed;left:50%;bottom:34px;transform:translate(-50%,20px);z-index:120;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+  .toast{padding:11px 18px;border-radius:12px;background:#0f172a;color:#fff;font-weight:600;box-shadow:0 12px 30px rgba(15,23,42,.3);opacity:0;transition:.22s}
+  .toast.on{opacity:1;transform:none}
+  .toast.error{background:#b91c1c}
+  .toast.success{background:#0a7d32}
+
+  /* ---------- 移动端 ---------- */
+  .bottom-nav{display:none}
+  @media (max-width:860px){
+    .nav{gap:10px;height:auto;min-height:60px;flex-wrap:nowrap}
+    .logo{font-size:16px}
+    .logo-mark{width:26px;height:26px;font-size:14px}
+    .search{flex:1;min-width:0;max-width:none}
+    .nav-links{gap:2px;flex-shrink:0}
+    .nav-link{padding:8px}
+    .nav-links .nav-link span.t{display:none}
+    .nav-links .btn.primary{padding:0 10px;font-size:12.5px}
+    .nav-links .user-chip{padding:4px 8px 4px 4px}
+    .nav-links .user-chip #myName{display:none}
+    .hero-inner{flex-direction:column;align-items:stretch;gap:14px;padding:20px}
+    .hero h1{font-size:22px}
+    .hero p{font-size:13px}
+    .hero-side{width:100%}
+    .hero-stats{gap:18px;flex-wrap:wrap;margin-top:14px}
+    .hero-stat b{font-size:19px}
+    .hero-stat span{white-space:nowrap;font-size:11.5px}
+    .grid{grid-template-columns:repeat(2,1fr);gap:12px}
+    .wrap{padding:0 14px}
+    .drawer{width:100%}
+    .order-card .thumb{width:76px;height:76px}
+    .bottom-nav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;background:rgba(255,255,255,.96);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));backdrop-filter:blur(10px)}
+    .bottom-nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px;color:var(--muted);font-size:11px;font-weight:700}
+    .bottom-nav button.on{color:var(--brand)}
+    .bottom-nav .ico{font-size:19px}
+    body{padding-bottom:64px}
+  }
+  @media (max-width:520px){
+    .nav{flex-wrap:wrap;height:auto;padding:8px 0 10px;row-gap:8px;column-gap:8px}
+    .logo{display:flex;order:1}
+    .nav-links{order:2;margin-left:auto}
+    .nav-links .nav-link{display:none}
+    .nav-links .btn.primary{padding:0 10px;font-size:12.5px}
+    .search{order:3;flex:1 0 100%;max-width:none}
+    .search input{height:38px}
+    .toolbar{flex-wrap:wrap;row-gap:10px}
+    .toolbar .sort{order:1;margin-left:auto}
+    .toolbar .chips{order:2;flex:1 0 100%}
+    .hero p{max-width:100%;font-size:12.5px;white-space:normal;word-break:break-word}
+    .hero-stats{gap:14px}
+    .hero-stat b{font-size:17px}
+    .row2{grid-template-columns:1fr}
+    .detail-body{padding:0 16px 16px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap nav">
+    <div class="logo"><span class="logo-mark">集</span>校园集市</div>
+    <div class="search">
+      <input id="searchInput" type="text" placeholder="搜商品、品牌，比如「自行车」「耳机」" autocomplete="off">
+      <button id="searchBtn" title="搜索">🔍</button>
+    </div>
+    <div class="nav-links">
+      <button class="nav-link active" data-view="items"><span class="ico">🏠</span><span class="t">逛逛</span></button>
+      <button class="nav-link" data-view="orders"><span class="ico">📦</span><span class="t">订单</span></button>
+      <button class="nav-link" data-view="favorites"><span class="ico">❤️</span><span class="t">收藏</span><span id="favCount" class="badge-dot" hidden>0</span></button>
+      <button class="nav-link" data-view="messages"><span class="ico">💬</span><span class="t">消息</span><span id="unreadDot" class="badge-dot" hidden>0</span></button>
+      <button class="btn primary small" data-view="publish">+ 发布</button>
+      <button id="loginBtn" class="btn ghost small">登录</button>
+      <button id="userChip" class="user-chip" hidden><span class="avatar" id="myAvatar">我</span><span id="myName">我</span></button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- 逛逛 -->
+  <section id="view-items">
+    <div class="hero">
+      <div class="hero-inner">
+        <div>
+          <h1>同校二手，便宜又放心</h1>
+          <p>闲置转让、毕业清仓、换新出手 —— 只在校园里流转的二手集市。</p>
+          <div class="hero-stats">
+            <div class="hero-stat"><b id="statTotal">--</b><span>在售好物</span></div>
+            <div class="hero-stat"><b id="statSellers">4</b><span>同学卖家</span></div>
+            <div class="hero-stat"><b>15 分钟</b><span>下单锁单</span></div>
+          </div>
+        </div>
+        <div class="hero-side" id="heroSide"></div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="chips" id="catChips"></div>
+      <select class="sort" id="sortSelect">
+        <option value="new">最新发布</option>
+        <option value="priceAsc">价格从低到高</option>
+        <option value="priceDesc">价格从高到低</option>
+      </select>
+    </div>
+    <div class="result-line" id="resultLine"></div>
+    <div class="grid" id="itemGrid"></div>
+    <div class="pager">
+      <button id="prevPage">← 上一页</button>
+      <div class="pages" id="pageNums"></div>
+      <button id="nextPage">下一页 →</button>
+    </div>
+  </section>
+
+  <!-- 订单 -->
+  <section id="view-orders" hidden>
+    <div class="orders-head">
+      <div class="seg">
+        <button id="segBought" class="on">我买到的</button>
+        <button id="segSold">我卖出的</button>
+      </div>
+      <button class="btn ghost small" id="refreshOrders">刷新</button>
+      <span style="color:var(--muted);font-size:12.5px">待支付的订单 15 分钟后自动取消，倒计时结束前完成付款即可</span>
+    </div>
+    <div id="orderList"></div>
+  </section>
+
+  <!-- 收藏 -->
+  <section id="view-favorites" hidden>
+    <div class="orders-head"><h2 style="font-size:19px">我的收藏</h2></div>
+    <div class="grid" id="favGrid"></div>
+  </section>
+
+  <!-- 消息 -->
+  <section id="view-messages" hidden>
+    <div class="orders-head">
+      <h2 style="font-size:19px">收到的留言</h2>
+      <button class="btn ghost small" id="readAllBtn">全部已读</button>
+    </div>
+    <div id="receivedList"></div>
+  </section>
+
+  <!-- 发布 -->
+  <section id="view-publish" hidden>
+    <div class="panel">
+      <h2>发布闲置</h2>
+      <p class="hint">描述写清楚、封面拍好看，成交快一倍。</p>
+      <div class="field">
+        <label>封面</label>
+        <div class="cover-drop" id="coverDrop">
+          <div id="coverTip">点击上传图片（JPG / PNG，小于 5MB）</div>
+          <div class="cover-actions" id="coverActions" hidden>
+            <button class="btn ghost small" type="button" id="coverChange">换一张</button>
+            <button class="btn ghost small" type="button" id="coverRemove">移除</button>
+          </div>
+        </div>
+        <input type="file" id="coverFile" accept="image/*" hidden>
+      </div>
+      <div class="field"><label>标题</label><input type="text" id="pTitle" maxlength="64" placeholder="例如：捷安特 ATX 山地车 27 速"></div>
+      <div class="row2">
+        <div class="field"><label>价格（元）</label><input type="number" id="pPrice" min="0.01" step="0.01" placeholder="0.00"></div>
+        <div class="field"><label>原价（可选，用于显示划线价）</label><input type="number" id="pOriginal" min="0" step="0.01" placeholder="0.00"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>分类</label><select id="pCategory"></select></div>
+        <div class="field"><label>校区</label><input type="text" id="pSchool" maxlength="64" placeholder="辽宁工程技术大学"></div>
+      </div>
+      <div class="field"><label>描述</label><textarea id="pDesc" maxlength="2000" placeholder="购买时间、成色、配件、交易方式……"></textarea></div>
+      <button class="btn primary block" id="publishBtn">发布</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- 详情抽屉 -->
+<div class="drawer-mask" id="drawerMask"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">
+    <b>商品详情</b>
+    <button class="x" id="drawerClose">✕</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+  <div class="drawer-foot" id="drawerFoot"></div>
+</aside>
+
+<!-- 登录 / 注册 -->
+<div class="modal-mask" id="loginMask">
+  <div class="modal">
+    <h3 id="authTitle">登录</h3>
+    <p class="sub" id="authSub">登录后才能下单、收藏和发布</p>
+    <div class="tabs" id="authTabs">
+      <button class="on" data-mode="login">登录</button>
+      <button data-mode="register">注册</button>
+    </div>
+    <div class="field"><label>用户名</label><input type="text" id="aUser" autocomplete="username" placeholder="3-32 位"></div>
+    <div class="field"><label>密码</label><input type="password" id="aPass" autocomplete="current-password" placeholder="6-32 位"></div>
+    <div id="registerExtra" hidden>
+      <div class="field"><label>昵称</label><input type="text" id="aNick" placeholder="同学怎么称呼你"></div>
+      <div class="field"><label>学校</label><input type="text" id="aSchool" placeholder="辽宁工程技术大学"></div>
+    </div>
+    <div class="form-msg" id="authMsg"></div>
+    <button class="btn primary block" id="authSubmit">登录</button>
+    <button class="btn block" id="authClose" style="margin-top:8px;color:var(--muted)">取消</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<nav class="bottom-nav">
+  <button class="on" data-view="items"><span class="ico">🏠</span>逛逛</button>
+  <button data-view="orders"><span class="ico">📦</span>订单</button>
+  <button data-view="favorites"><span class="ico">❤️</span>收藏</button>
+  <button data-view="messages"><span class="ico">💬</span>消息</button>
+  <button data-view="publish"><span class="ico">＋</span>发布</button>
+</nav>
+
+<script>
+(function () {
+  'use strict';
+
+  var CATS = [
+    { id: '1', name: '数码电子', ico: '💻' },
+    { id: '2', name: '图书教材', ico: '📚' },
+    { id: '3', name: '家居生活', ico: '🛋️' },
+    { id: '4', name: '运动户外', ico: '🚴' },
+    { id: '5', name: '服饰鞋包', ico: '👟' },
+    { id: '6', name: '乐器文娱', ico: '🎸' },
+    { id: '7', name: '其他好物', ico: '✨' }
+  ];
+  var PAGE_SIZE = 12;
+
+  var state = {
+    token: localStorage.getItem('token') || '',
+    username: localStorage.getItem('username') || '',
+    userId: null,
+    view: 'items',
+    page: 1,
+    pages: 1,
+    keyword: '',
+    categoryId: '',
+    sort: 'new',
+    items: [],
+    total: 0,
+    favorites: new Set(),
+    orders: [],
+    orderMode: 'bought',
+    detail: null,
+    coverImage: '',
+    timer: null
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function money(v) {
+    var n = Number(v || 0);
+    return '¥' + priceText(n);
+  }
+  // 整数价格不带 .00，只有真的带小数才显示两位
+  function priceText(v) {
+    var n = Number(v || 0);
+    return Number.isInteger(n) ? String(n) : n.toFixed(2);
+  }
+  function avatar(name) {
+    var t = (name || '同').trim().charAt(0);
+    return '<span class="avatar">' + esc(t) + '</span>';
+  }
+  function timeText(s) {
+    if (!s) return '';
+    var d = new Date(String(s).replace('T', ' ').replace(/-/g, '/'));
+    if (isNaN(d.getTime())) return String(s);
+    var diff = (Date.now() - d.getTime()) / 1000;
+    if (diff < 60) return '刚刚';
+    if (diff < 3600) return Math.floor(diff / 60) + ' 分钟前';
+    if (diff < 86400) return Math.floor(diff / 3600) + ' 小时前';
+    if (diff < 86400 * 30) return Math.floor(diff / 86400) + ' 天前';
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+  function catName(id) {
+    for (var i = 0; i < CATS.length; i++) if (CATS[i].id === String(id)) return CATS[i].name;
+    return '好物';
+  }
+
+  // ---------- toast ----------
+  function toast(msg, type) {
+    var box = $('toast');
+    var el = document.createElement('div');
+    el.className = 'toast ' + (type || '');
+    el.textContent = msg;
+    box.appendChild(el);
+    requestAnimationFrame(function () { el.classList.add('on'); });
+    setTimeout(function () {
+      el.classList.remove('on');
+      setTimeout(function () { el.remove(); }, 260);
+    }, 2400);
+  }
+
+  // ---------- api ----------
+  async function api(path, options) {
+    options = options || {};
+    var headers = new Headers(options.headers || {});
+    if (options.body && !(options.body instanceof FormData) && !headers.has('Content-Type')) {
+      headers.set('Content-Type', 'application/json');
+    }
+    if (state.token) headers.set('Authorization', 'Bearer ' + state.token);
+    var res = await fetch(path, Object.assign({}, options, { headers: headers }));
+    var text = await res.text();
+    var json = null;
+    if (text) { try { json = JSON.parse(text); } catch (e) { /* 非 JSON */ } }
+    if (res.status === 401 || (json && json.code === 401)) {
+      clearSession(true);
+      throw new Error('登录已过期，请重新登录');
+    }
+    if (!res.ok) throw new Error('请求失败（HTTP ' + res.status + '）');
+    if (!json) throw new Error('服务器返回了非 JSON 内容');
+    if (json.code !== 200) throw new Error(json.message || '请求失败');
+    return json.data;
+  }
+
+  // ---------- 登录态 ----------
+  function clearSession(expired) {
+    state.token = ''; state.username = ''; state.userId = null;
+    state.favorites = new Set();
+    localStorage.removeItem('token'); localStorage.removeItem('username');
+    renderUser();
+    if (expired) toast('登录已过期，请重新登录', 'error');
+  }
+  function decodeToken() {
+    if (!state.token) return null;
+    try {
+      var part = state.token.split('.')[1];
+      if (!part) return null;
+      var s = part.replace(/-/g, '+').replace(/_/g, '/');
+      while (s.length % 4) s += '=';
+      return JSON.parse(decodeURIComponent(escape(atob(s))));
+    } catch (e) { return null; }
+  }
+  function renderUser() {
+    var logged = !!state.token;
+    $('loginBtn').hidden = logged;
+    $('userChip').hidden = !logged;
+    if (logged) {
+      $('myName').textContent = state.username || '同学';
+      $('myAvatar').textContent = (state.username || '同').charAt(0);
+    }
+    $('favCount').hidden = !logged || state.favorites.size === 0;
+    $('favCount').textContent = String(state.favorites.size);
+  }
+
+  // ---------- 视图切换 ----------
+  function switchView(view) {
+    state.view = view;
+    ['items', 'orders', 'favorites', 'messages', 'publish'].forEach(function (v) {
+      var el = $('view-' + v);
+      if (el) el.hidden = v !== view;
+    });
+    document.querySelectorAll('[data-view]').forEach(function (b) {
+      var on = b.getAttribute('data-view') === view;
+      b.classList.toggle('on', on);
+      if (b.classList.contains('nav-link')) b.classList.toggle('active', on);
+    });
+    if (view === 'orders') loadOrders(state.orderMode);
+    if (view === 'favorites') loadFavorites();
+    if (view === 'messages') loadReceived();
+    if (view === 'publish') preparePublish();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ---------- 商品列表 ----------
+  function renderChips() {
+    var html = '<button class="chip' + (state.categoryId === '' ? ' on' : '') + '" data-cat="">全部</button>';
+    CATS.forEach(function (c) {
+      html += '<button class="chip' + (state.categoryId === String(c.id) ? ' on' : '') + '" data-cat="' + c.id + '">' + c.ico + ' ' + c.name + '</button>';
+    });
+    $('catChips').innerHTML = html;
+  }
+
+  function skeleton(n) {
+    var html = '';
+    for (var i = 0; i < n; i++) {
+      html += '<div class="skel"><div class="s1"></div><div class="s2"></div><div class="s3"></div></div>';
+    }
+    return html;
+  }
+
+  function itemCard(item) {
+    var sold = Number(item.status) !== 1;
+    var fav = state.favorites.has(item.id);
+    var cover = item.coverImage
+      ? '<img src="' + esc(item.coverImage) + '" alt="' + esc(item.title) + '" loading="lazy">'
+      : '<div class="ph">🖼️</div>';
+    return '' +
+      '<article class="card" data-id="' + item.id + '">' +
+        '<div class="thumb">' + cover +
+          '<span class="tag">' + esc(catName(item.categoryId)) + '</span>' +
+          '<button class="fav-btn' + (fav ? ' on' : '') + '" data-fav="' + item.id + '" title="收藏">' + (fav ? '❤️' : '🤍') + '</button>' +
+          (sold ? '<div class="sold-mask">已' + (Number(item.status) === 2 ? '售出' : '下架') + '</div>' : '') +
+        '</div>' +
+        '<div class="card-body">' +
+          '<div class="card-title">' + esc(item.title) + '</div>' +
+          '<div class="price"><small>¥</small>' + priceText(item.price) +
+            (item.originalPrice ? '<s>' + money(item.originalPrice) + '</s>' : '') + '</div>' +
+          '<div class="card-foot">' +
+            '<div class="seller">' + avatar(item.sellerNickname || ('用户' + item.sellerId)) +
+              '<span>' + esc(item.sellerNickname || (item.sellerId ? '同学' + item.sellerId : '同校同学')) + ' · ' + esc(item.school || '校内') + '</span></div>' +
+            '<span>👁 ' + (item.viewCount || 0) + '</span>' +
+          '</div>' +
+        '</div>' +
+      '</article>';
+  }
+
+  async function loadItems(page) {
+    state.page = page || 1;
+    $('itemGrid').innerHTML = skeleton(8);
+    $('resultLine').textContent = '正在加载…';
+    var qs = new URLSearchParams();
+    qs.set('page', state.page); qs.set('size', PAGE_SIZE);
+    if (state.keyword) qs.set('keyword', state.keyword);
+    if (state.categoryId) qs.set('categoryId', state.categoryId);
+    try {
+      var data = await api('/api/item/page?' + qs.toString());
+      var records = data.records || [];
+      var total = Number(data.total || records.length);
+      state.items = records;
+      state.total = total;
+      state.pages = Math.max(1, Number(data.pages || Math.ceil(total / PAGE_SIZE)));
+      if (state.sort === 'priceAsc') records.sort(function (a, b) { return a.price - b.price; });
+      if (state.sort === 'priceDesc') records.sort(function (a, b) { return b.price - a.price; });
+      if (!records.length) {
+        $('itemGrid').innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="ico">🔍</div><b>没有找到相关商品</b>换个关键词，或者去发布你的闲置</div>';
+      } else {
+        $('itemGrid').innerHTML = records.map(itemCard).join('');
+      }
+      $('resultLine').textContent = '共 ' + total + ' 件在售好物' + (state.keyword ? '，关键词「' + state.keyword + '」' : '');
+      $('statTotal').textContent = total;
+      renderPager();
+      $('prevPage').disabled = state.page <= 1;
+      $('nextPage').disabled = state.page >= state.pages;
+      renderHero(records);
+    } catch (e) {
+      $('itemGrid').innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="ico">⚠️</div><b>加载失败</b>' + esc(e.message) + '</div>';
+      $('resultLine').textContent = '';
+    }
+  }
+
+  // 页码：最多显示 5 个，当前页高亮
+  function renderPager() {
+    var box = $('pageNums');
+    if (!box) return;
+    var total = state.pages, cur = state.page;
+    var start = Math.max(1, cur - 2);
+    var end = Math.min(total, start + 4);
+    start = Math.max(1, end - 4);
+    var html = '';
+    for (var p = start; p <= end; p++) {
+      html += '<button data-page="' + p + '" class="' + (p === cur ? 'on' : '') + '">' + p + '</button>';
+    }
+    box.innerHTML = html;
+    box.querySelectorAll('button').forEach(function (b) {
+      b.addEventListener('click', function () { loadItems(Number(b.dataset.page)); });
+    });
+  }
+
+  // hero 右侧：取本页最新的 3 件商品，做成"今日上新"小卡片
+  function renderHero(records) {
+    var box = $('heroSide');
+    if (!box) return;
+    var top = (records || []).slice(0, 3);
+    var rows = top.map(function (it) {
+      var cover = it.coverImage
+        ? '<img src="' + esc(it.coverImage) + '" alt="">'
+        : '📦';
+      return '<div class="hero-row" data-id="' + it.id + '" role="button" tabindex="0">' +
+        '<span class="ph">' + cover + '</span>' +
+        '<span class="t">' + esc(it.title) + '</span>' +
+        '<span class="p">¥' + priceText(it.price) + '</span></div>';
+    }).join('');
+    box.innerHTML = '<h4>🔥 今日上新</h4>' + (rows || '<div class="hero-row"><span class="t">暂无新品</span></div>');
+    [].slice.call(box.querySelectorAll('.hero-row[data-id]')).forEach(function (row) {
+      row.addEventListener('click', function () { openDetail(Number(row.dataset.id)); });
+      row.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') openDetail(Number(row.dataset.id)); });
+    });
+  }
+
+  // ---------- 详情 ----------
+  async function openDetail(id) {
+    $('drawerBody').innerHTML = '<div class="empty">加载中…</div>';
+    $('drawerFoot').innerHTML = '';
+    $('drawerMask').classList.add('on');
+    $('drawer').classList.add('on');
+    document.body.style.overflow = 'hidden';
+    try {
+      var item = await api('/api/item/' + id);
+      state.detail = item;
+      renderDetail(item);
+      loadMessages(item.id);
+    } catch (e) {
+      $('drawerBody').innerHTML = '<div class="empty"><div class="ico">⚠️</div><b>加载失败</b>' + esc(e.message) + '</div>';
+    }
+  }
+  function closeDetail() {
+    $('drawerMask').classList.remove('on');
+    $('drawer').classList.remove('on');
+    document.body.style.overflow = '';
+    state.detail = null;
+  }
+
+  function isMine(item) {
+    var claims = decodeToken();
+    // 后端把 userId 放在 JWT 的 subject（sub）里，不是自定义 claim
+    var me = state.userId || (claims && (claims.sub || claims.userId));
+    return !!me && Number(item.sellerId) === Number(me);
+  }
+
+  function renderDetail(item) {
+    var mine = isMine(item);
+    var fav = state.favorites.has(item.id);
+    var sold = Number(item.status) !== 1;
+    var name = item.sellerNickname || (item.sellerId ? '同学' + item.sellerId : '同校同学');
+    $('drawerBody').innerHTML = '' +
+      '<div class="detail-cover">' + (item.coverImage
+        ? '<img src="' + esc(item.coverImage) + '" alt="' + esc(item.title) + '">'
+        : '<div class="ph" style="height:100%;display:grid;place-items:center;font-size:52px">🖼️</div>') + '</div>' +
+      '<div class="detail-title">' + esc(item.title) + '</div>' +
+      '<div class="detail-price price"><small>¥</small>' + priceText(item.price) +
+        (item.originalPrice ? '<s>' + money(item.originalPrice) + '</s>' : '') + '</div>' +
+      '<div class="stat-row"><span>👁 ' + (item.viewCount || 0) + ' 次浏览</span><span>🗂 ' + esc(catName(item.categoryId)) + '</span><span>🕒 ' + timeText(item.createTime) + '</span></div>' +
+      '<div class="seller-card">' + avatar(name) +
+        '<div><b>' + esc(name) + (mine ? '（我）' : '') + '</b><small>' + esc(item.school || '未填校区') + ' · 卖家</small></div>' +
+      '</div>' +
+      '<div class="section-title">商品描述</div>' +
+      '<p class="detail-desc">' + esc(item.description || '卖家很懒，没有写描述。') + '</p>' +
+      '<div class="section-title">留言 <span style="color:var(--muted);font-weight:500;font-size:12px" id="msgCount"></span></div>' +
+      '<div id="msgList"><div class="empty" style="padding:20px">加载中…</div></div>' +
+      '<div class="msg-form"><input id="msgInput" maxlength="500" placeholder="问问成色、能不能便宜点…" ' + (mine ? 'disabled' : '') + '>' +
+        '<button class="btn primary small" id="msgSend" ' + (mine ? 'disabled' : '') + '>发送</button></div>';
+
+    var canBuy = !mine && !sold;
+    $('drawerFoot').innerHTML =
+      '<button class="btn ghost" id="favToggle">' + (fav ? '❤️ 已收藏' : '🤍 收藏') + '</button>' +
+      (canBuy
+        ? '<button class="btn primary" style="flex:1" id="buyBtn">立即下单</button>'
+        : '<button class="btn primary" style="flex:1" disabled>' + (mine ? '这是我发布的商品' : '该商品已不可购买') + '</button>');
+
+    $('favToggle').onclick = function () { toggleFavorite(item.id); };
+    if (canBuy) $('buyBtn').onclick = function () { createOrder(item.id); };
+    $('msgSend').onclick = function () { sendMessage(item.id); };
+  }
+
+  async function toggleFavorite(itemId) {
+    if (!state.token) { openLogin(); return; }
+    var on = state.favorites.has(itemId);
+    try {
+      await api('/api/favorite/' + itemId, { method: on ? 'DELETE' : 'POST' });
+      if (on) state.favorites.delete(itemId); else state.favorites.add(itemId);
+      renderUser();
+      if (state.detail && state.detail.id === itemId) renderDetail(state.detail);
+      if (state.view === 'items') loadItems(state.page);
+      if (state.view === 'favorites') loadFavorites();
+      toast(on ? '已取消收藏' : '收藏成功', 'success');
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
+  // ---------- 留言 ----------
+  async function loadMessages(itemId) {
+    try {
+      var data = await api('/api/message/item/' + itemId + '?page=1&size=30');
+      var list = data.records || [];
+      var box = $('msgList');
+      if (!box) return;
+      box.innerHTML = list.length ? list.map(function (m) {
+        return '<div class="msg"><div class="msg-head">' + avatar(m.fromNickName || ('用户' + m.fromUserId)) +
+          '<b>' + esc(m.fromNickName || ('用户' + m.fromUserId)) + '</b><time>' + timeText(m.createTime) + '</time></div>' +
+          '<div class="msg-content">' + esc(m.content) + '</div></div>';
+      }).join('') : '<div class="empty" style="padding:16px">还没有留言，来问第一句吧。</div>';
+      var c = $('msgCount'); if (c) c.textContent = list.length ? '(' + list.length + ')' : '';
+    } catch (e) {
+      var b2 = $('msgList'); if (b2) b2.innerHTML = '<div class="empty" style="padding:16px">' + esc(e.message) + '</div>';
+    }
+  }
+  async function sendMessage(itemId) {
+    if (!state.token) { openLogin(); return; }
+    var input = $('msgInput');
+    var content = (input.value || '').trim();
+    if (!content) { toast('先写点内容', 'error'); return; }
+    try {
+      await api('/api/message', { method: 'POST', body: JSON.stringify({ itemId: itemId, content: content }) });
+      input.value = '';
+      loadMessages(itemId);
+      toast('留言已发送', 'success');
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
+  // ---------- 下单 ----------
+  async function createOrder(itemId) {
+    if (!state.token) { openLogin(); return; }
+    try {
+      var orderId = await api('/api/order', { method: 'POST', body: JSON.stringify({ itemId: itemId }) });
+      closeDetail();
+      toast('下单成功，订单 #' + orderId + '，请在 15 分钟内完成支付', 'success');
+      switchView('orders');
+      loadOrders('bought');
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
+  // ---------- 订单 ----------
+  function orderState(o) {
+    var st = Number(o.status);
+    if (st === 2) return { cls: 'cancel', text: '已取消' };
+    if (st === 3) return { cls: 'done', text: '已完成' };
+    if (st === 0) return Number(o.payStatus) === 1 ? { cls: 'ok', text: '已付款·待确认' } : { cls: 'wait', text: '待付款' };
+    return { cls: 'ok', text: '已确认·待收货' };
+  }
+  function orderCard(o) {
+    var s = orderState(o);
+    var canPay = state.orderMode === 'bought' && Number(o.status) === 0 && Number(o.payStatus) !== 1;
+    var canConfirm = state.orderMode === 'sold' && Number(o.status) === 0 && Number(o.payStatus) === 1;
+    var canFinish = state.orderMode === 'bought' && Number(o.status) === 1;
+    var canCancel = (Number(o.status) === 0 || Number(o.status) === 1) && Number(o.payStatus) !== 1;
+    var cover = o.itemCover
+      ? '<img src="' + esc(o.itemCover) + '" alt="" style="width:100%;height:100%;object-fit:cover">'
+      : '<div style="height:100%;display:grid;place-items:center;font-size:26px;background:#eef2f7">📦</div>';
+    return '' +
+      '<div class="order-card" data-order="' + o.id + '">' +
+        '<div class="thumb">' + cover + '</div>' +
+        '<div class="order-main">' +
+          '<div class="order-top"><span class="state ' + s.cls + '">' + s.text + '</span>' +
+            (canPay && o.expireTime ? '<span class="countdown" data-expire="' + esc(o.expireTime) + '">--:--</span>' : '') +
+            '<span style="color:var(--muted);font-size:12px">订单 #' + o.id + '</span></div>' +
+          '<div class="order-title">' + esc(o.itemTitle || ('商品 #' + o.itemId)) + '</div>' +
+          '<div class="order-meta">' + money(o.price) + ' · ' +
+          (state.orderMode === 'bought'
+            ? '卖家 ' + esc(o.sellerNickname || ('#' + o.sellerId))
+            : '买家 ' + esc(o.buyerNickname || ('#' + o.buyerId))) +
+          ' · ' + timeText(o.createTime) + '</div>' +
+          '<div class="order-actions">' +
+            (canPay ? '<button class="btn primary small" data-act="pay">去支付</button>' : '') +
+            (canConfirm ? '<button class="btn primary small" data-act="confirm">确认订单</button>' : '') +
+            (canFinish ? '<button class="btn primary small" data-act="finish">确认完成</button>' : '') +
+            (canCancel ? '<button class="btn ghost small" data-act="cancel">取消订单</button>' : '') +
+            '<button class="btn ghost small" data-act="view">查看商品</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  async function loadOrders(mode) {
+    state.orderMode = mode || 'bought';
+    $('segBought').classList.toggle('on', state.orderMode === 'bought');
+    $('segSold').classList.toggle('on', state.orderMode === 'sold');
+    var box = $('orderList');
+    if (!state.token) {
+      box.innerHTML = '<div class="empty"><div class="ico">🔐</div><b>登录后查看订单</b><button class="btn primary small" onclick="document.getElementById(\'loginBtn\').click()">去登录</button></div>';
+      return;
+    }
+    box.innerHTML = '<div class="empty">加载中…</div>';
+    try {
+      var data = await api('/api/order/' + state.orderMode + '?page=1&size=30');
+      var list = data.records || [];
+      state.orders = list;
+      box.innerHTML = list.length ? list.map(orderCard).join('')
+        : '<div class="empty"><div class="ico">📭</div><b>还没有订单</b>' + (state.orderMode === 'bought' ? '去逛逛，遇到合适的就下单' : '你的商品还没人买') + '</div>';
+      tickCountdown();
+    } catch (e) {
+      box.innerHTML = '<div class="empty"><div class="ico">⚠️</div><b>加载失败</b>' + esc(e.message) + '</div>';
+    }
+  }
+
+  async function orderAction(orderId, act) {
+    if (act === 'view') {
+      var o = state.orders.filter(function (x) { return String(x.id) === String(orderId); })[0];
+      if (o) openDetail(o.itemId);
+      return;
+    }
+    if (act === 'pay') { await goPay(orderId); return; }
+    var tips = {
+      confirm: '确认这个订单？确认后买家就可以完成交易。',
+      finish: '确认已经收到商品并完成交易？完成后订单不可取消。',
+      cancel: '取消这个订单？商品会回到在售状态。'
+    };
+    if (!window.confirm(tips[act])) return;
+    try {
+      await api('/api/order/' + orderId + '/' + act, { method: 'PUT' });
+      toast(act === 'confirm' ? '订单已确认' : act === 'finish' ? '交易已完成' : '订单已取消', 'success');
+      loadOrders(state.orderMode);
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
+  async function goPay(orderId) {
+    if (!state.token) { openLogin(); return; }
+    try {
+      var res = await fetch('/api/pay/page?orderId=' + encodeURIComponent(orderId), {
+        headers: { 'Authorization': 'Bearer ' + state.token }
+      });
+      var text = await res.text();
+      if (!res.ok || !/^\s*</.test(text)) {
+        var msg = text;
+        try { var j = JSON.parse(text); msg = j.message || text; } catch (e) { /* 非 JSON */ }
+        toast(msg || ('发起支付失败（HTTP ' + res.status + '）'), 'error');
+        return;
+      }
+      document.open();
+      document.write(text);
+      document.close();
+    } catch (e) { toast('发起支付失败：' + e.message, 'error'); }
+  }
+
+  // ---------- 倒计时 ----------
+  function tickCountdown() {
+    var nodes = document.querySelectorAll('.countdown[data-expire]');
+    var anyTimeout = false;
+    nodes.forEach(function (n) {
+      var raw = String(n.getAttribute('data-expire')).replace('T', ' ').replace(/-/g, '/');
+      var end = new Date(raw).getTime();
+      if (isNaN(end)) { n.textContent = ''; return; }
+      var left = Math.floor((end - Date.now()) / 1000);
+      if (left <= 0) {
+        n.textContent = '已超时';
+        n.classList.add('timeout');
+        anyTimeout = true;
+      } else {
+        n.textContent = '剩 ' + pad2(Math.floor(left / 60)) + ':' + pad2(left % 60);
+        n.classList.remove('timeout');
+      }
+    });
+    if (anyTimeout && !state.timeoutTimer) {
+      state.timeoutTimer = setTimeout(function () {
+        state.timeoutTimer = null;
+        loadOrders(state.orderMode);
+      }, 4000);
+    }
+  }
+  function startTimer() {
+    if (state.timer) return;
+    state.timer = setInterval(function () {
+      if (document.hidden) return;
+      tickCountdown();
+    }, 1000);
+  }
+
+  // ---------- 收藏 / 消息 ----------
+  async function loadFavoriteIds() {
+    if (!state.token) { state.favorites = new Set(); renderUser(); return; }
+    try {
+      var data = await api('/api/favorite/page?page=1&size=50');
+      state.favorites = new Set((data.records || []).map(function (i) { return i.id; }));
+      renderUser();
+    } catch (e) { state.favorites = new Set(); renderUser(); }
+  }
+  async function loadFavorites() {
+    var box = $('favGrid');
+    if (!state.token) { box.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="ico">🔐</div><b>登录后查看收藏</b></div>'; return; }
+    box.innerHTML = skeleton(4);
+    try {
+      var data = await api('/api/favorite/page?page=1&size=50');
+      var list = data.records || [];
+      box.innerHTML = list.length ? list.map(itemCard).join('')
+        : '<div class="empty" style="grid-column:1/-1"><div class="ico">🤍</div><b>还没有收藏</b>逛到喜欢的点一下爱心</div>';
+    } catch (e) {
+      box.innerHTML = '<div class="empty" style="grid-column:1/-1"><div class="ico">⚠️</div><b>加载失败</b>' + esc(e.message) + '</div>';
+    }
+  }
+  async function loadReceived() {
+    var box = $('receivedList');
+    if (!state.token) { box.innerHTML = '<div class="empty"><div class="ico">🔐</div><b>登录后查看留言</b></div>'; return; }
+    box.innerHTML = '<div class="empty">加载中…</div>';
+    try {
+      var data = await api('/api/message/received?page=1&size=30');
+      var list = data.records || [];
+      box.innerHTML = list.length ? '<div style="background:#fff;border:1px solid var(--line);border-radius:16px;padding:8px 16px">' +
+        list.map(function (m) {
+          return '<div class="msg"><div class="msg-head">' + avatar(m.fromNickName || ('用户' + m.fromUserId)) +
+            '<b>' + esc(m.fromNickName || ('用户' + m.fromUserId)) + '</b><time>' + timeText(m.createTime) + '</time></div>' +
+            '<div class="msg-content">' + esc(m.content) + '</div>' +
+            '<div style="margin-top:6px"><button class="btn ghost small" data-item="' + m.itemId + '">看这个商品</button></div></div>';
+        }).join('') + '</div>'
+        : '<div class="empty"><div class="ico">💬</div><b>暂无留言</b></div>';
+    } catch (e) {
+      box.innerHTML = '<div class="empty"><div class="ico">⚠️</div><b>加载失败</b>' + esc(e.message) + '</div>';
+    }
+  }
+  async function loadUnread() {
+    if (!state.token) { $('unreadDot').hidden = true; return; }
+    try {
+      var n = Number(await api('/api/message/unread-count') || 0);
+      $('unreadDot').hidden = n <= 0;
+      $('unreadDot').textContent = n > 99 ? '99+' : String(n);
+    } catch (e) { $('unreadDot').hidden = true; }
+  }
+
+  // ---------- 发布 ----------
+  function preparePublish() {
+    var sel = $('pCategory');
+    if (!sel.options.length) {
+      CATS.forEach(function (c) {
+        var o = document.createElement('option');
+        o.value = c.id; o.textContent = c.ico + ' ' + c.name;
+        sel.appendChild(o);
+      });
+    }
+    if (!$('pSchool').value) $('pSchool').value = '辽宁工程技术大学';
+    renderCover();
+  }
+  function renderCover() {
+    var tip = $('coverTip'), acts = $('coverActions');
+    if (state.coverImage) {
+      tip.innerHTML = '<img src="' + esc(state.coverImage) + '" alt="封面">';
+      acts.hidden = false;
+    } else {
+      tip.textContent = '点击上传图片（JPG / PNG，小于 5MB）';
+      acts.hidden = true;
+    }
+  }
+  async function uploadCover(file) {
+    var form = new FormData();
+    form.append('file', file);
+    try {
+      var url = await api('/api/upload/image', { method: 'POST', body: form });
+      state.coverImage = url;
+      renderCover();
+      toast('封面已上传', 'success');
+    } catch (e) { toast(e.message, 'error'); }
+  }
+  async function publish() {
+    if (!state.token) { openLogin(); return; }
+    var title = ($('pTitle').value || '').trim();
+    var price = $('pPrice').value;
+    if (!title) { toast('标题不能为空', 'error'); return; }
+    if (!price || Number(price) <= 0) { toast('价格要大于 0', 'error'); return; }
+    var body = {
+      title: title,
+      description: ($('pDesc').value || '').trim(),
+      // ItemCreateDto.price 是 String，传字符串避免 Jackson 反序列化类型不一致
+      price: String(price),
+      originalPrice: $('pOriginal').value ? Number($('pOriginal').value) : null,
+      coverImage: state.coverImage || null,
+      school: ($('pSchool').value || '').trim(),
+      categoryId: Number($('pCategory').value)
+    };
+    var btn = $('publishBtn');
+    btn.disabled = true;
+    try {
+      var id = await api('/api/item', { method: 'POST', body: JSON.stringify(body) });
+      toast('发布成功，商品 #' + id, 'success');
+      $('pTitle').value = ''; $('pPrice').value = ''; $('pOriginal').value = ''; $('pDesc').value = '';
+      state.coverImage = ''; renderCover();
+      switchView('items');
+      loadItems(1);
+    } catch (e) {
+      toast(e.message, 'error');
+    } finally { btn.disabled = false; }
+  }
+
+  // ---------- 登录 ----------
+  var authMode = 'login';
+  function openLogin(mode) {
+    authMode = mode || 'login';
+    setAuthMode(authMode);
+    $('authMsg').textContent = '';
+    $('loginMask').classList.add('on');
+  }
+  function setAuthMode(mode) {
+    authMode = mode;
+    document.querySelectorAll('#authTabs button').forEach(function (b) {
+      b.classList.toggle('on', b.getAttribute('data-mode') === mode);
+    });
+    $('authTitle').textContent = mode === 'login' ? '登录' : '注册';
+    $('authSub').textContent = mode === 'login' ? '登录后才能下单、收藏和发布' : '注册一个账号，开始买卖二手';
+    $('registerExtra').hidden = mode === 'login';
+    $('authSubmit').textContent = mode === 'login' ? '登录' : '注册并登录';
+  }
+  async function submitAuth() {
+    var username = ($('aUser').value || '').trim();
+    var password = $('aPass').value || '';
+    if (!username || !password) { $('authMsg').textContent = '用户名和密码都要填'; return; }
+    $('authMsg').textContent = '';
+    $('authSubmit').disabled = true;
+    try {
+      if (authMode === 'register') {
+        await api('/api/user/register', { method: 'POST', body: JSON.stringify({
+          username: username, password: password,
+          nickname: ($('aNick').value || '').trim() || username,
+          school: ($('aSchool').value || '').trim() || '辽宁工程技术大学'
+        }) });
+        toast('注册成功，正在登录…', 'success');
+      }
+      var token = await api('/api/user/login', { method: 'POST', body: JSON.stringify({ username: username, password: password }) });
+      state.token = token;
+      state.username = username;
+      localStorage.setItem('token', token);
+      localStorage.setItem('username', username);
+      $('loginMask').classList.remove('on');
+      renderUser();
+      await loadFavoriteIds();
+      loadUnread();
+      toast('欢迎回来，' + username, 'success');
+      if (state.view === 'orders') loadOrders(state.orderMode);
+      if (state.view === 'favorites') loadFavorites();
+    } catch (e) {
+      $('authMsg').textContent = e.message;
+    } finally { $('authSubmit').disabled = false; }
+  }
+
+  // ---------- 事件 ----------
+  function bind() {
+    document.querySelectorAll('[data-view]').forEach(function (b) {
+      b.addEventListener('click', function () { switchView(b.getAttribute('data-view')); });
+    });
+    $('loginBtn').addEventListener('click', function () { openLogin('login'); });
+    $('userChip').addEventListener('click', function () {
+      if (!window.confirm('要退出登录吗？')) return;
+      clearSession(false);
+      toast('已退出登录');
+      switchView('items');
+    });
+    $('authClose').addEventListener('click', function () { $('loginMask').classList.remove('on'); });
+    $('authSubmit').addEventListener('click', submitAuth);
+    $('loginMask').addEventListener('click', function (e) { if (e.target === $('loginMask')) $('loginMask').classList.remove('on'); });
+    document.querySelectorAll('#authTabs button').forEach(function (b) {
+      b.addEventListener('click', function () { setAuthMode(b.getAttribute('data-mode')); });
+    });
+
+    $('searchBtn').addEventListener('click', function () {
+      state.keyword = ($('searchInput').value || '').trim();
+      switchView('items');
+      loadItems(1);
+    });
+    $('searchInput').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') $('searchBtn').click();
+    });
+    $('catChips').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-cat]');
+      if (!b) return;
+      state.categoryId = b.getAttribute('data-cat');
+      renderChips();
+      loadItems(1);
+    });
+    $('sortSelect').addEventListener('change', function () {
+      state.sort = $('sortSelect').value;
+      loadItems(state.page);
+    });
+    $('prevPage').addEventListener('click', function () { if (state.page > 1) loadItems(state.page - 1); });
+    $('nextPage').addEventListener('click', function () { if (state.page < state.pages) loadItems(state.page + 1); });
+
+    $('itemGrid').addEventListener('click', function (e) {
+      var favBtn = e.target.closest('[data-fav]');
+      if (favBtn) { e.stopPropagation(); toggleFavorite(Number(favBtn.getAttribute('data-fav'))); return; }
+      var card = e.target.closest('.card');
+      if (card) openDetail(card.getAttribute('data-id'));
+    });
+    $('favGrid').addEventListener('click', function (e) {
+      var favBtn = e.target.closest('[data-fav]');
+      if (favBtn) { e.stopPropagation(); toggleFavorite(Number(favBtn.getAttribute('data-fav'))); return; }
+      var card = e.target.closest('.card');
+      if (card) openDetail(card.getAttribute('data-id'));
+    });
+
+    $('drawerClose').addEventListener('click', closeDetail);
+    $('drawerMask').addEventListener('click', closeDetail);
+
+    $('segBought').addEventListener('click', function () { loadOrders('bought'); });
+    $('segSold').addEventListener('click', function () { loadOrders('sold'); });
+    $('refreshOrders').addEventListener('click', function () { loadOrders(state.orderMode); });
+    $('orderList').addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-act]');
+      if (!btn) return;
+      var card = btn.closest('[data-order]');
+      orderAction(card.getAttribute('data-order'), btn.getAttribute('data-act'));
+    });
+
+    $('receivedList').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-item]');
+      if (b) openDetail(b.getAttribute('data-item'));
+    });
+    $('readAllBtn').addEventListener('click', async function () {
+      if (!state.token) { openLogin(); return; }
+      try { await api('/api/message/read-all', { method: 'PUT' }); loadUnread(); toast('已全部标记为已读', 'success'); }
+      catch (err) { toast(err.message, 'error'); }
+    });
+
+    $('coverDrop').addEventListener('click', function () { $('coverFile').click(); });
+    $('coverFile').addEventListener('change', function () {
+      if (this.files && this.files[0]) uploadCover(this.files[0]);
+      this.value = '';
+    });
+    $('coverChange').addEventListener('click', function (e) { e.stopPropagation(); $('coverFile').click(); });
+    $('coverRemove').addEventListener('click', function (e) {
+      e.stopPropagation();
+      state.coverImage = '';
+      renderCover();
+    });
+    $('publishBtn').addEventListener('click', publish);
+  }
+
+  // ---------- 启动 ----------
+  async function boot() {
+    renderChips();
+    renderUser();
+    bind();
+    if (state.token) { await loadFavoriteIds(); loadUnread(); }
+    await loadItems(1);
+    startTimer();
+  }
+  boot();
+})();
+</script>
+</body>
+</html>

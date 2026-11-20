@@ -1,0 +1,62 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: campus-trade
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/campus_trade?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    # TODO 改成你自己的 MySQL root 密码（保留引号）
+    password: "12345678"
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      timeout: 3s
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    listener:
+      simple:
+        default-requeue-rejected: false
+
+
+mybatis-plus:
+  configuration:
+    # 数据库下划线字段 -> Java 驼峰属性，create_time -> createTime
+    map-underscore-to-camel-case: true
+    # 控制台打印 SQL，方便学习阶段观察
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      # 主键使用数据库自增
+      id-type: auto
+      # 逻辑删除字段
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+jwt:
+    # 密钥至少 32 个字符（256 位），HS256 要求
+    secret: campus-trade-jwt-secret-key-please-change-2026
+    expire-hours: 2
+
+file:
+  upload-dir: D:/idea/campus-trade/uploads
+
+alipay:
+  app-id: 9021000165600878
+  gateway: https://openapi-sandbox.dl.alipaydev.com/gateway.do
+  private-key-path: D:\alipay\app_private_key.txt
+  alipay-public-key-path: D:\alipay\alipay_public_key.txt
+  return-url:  http://localhost:8080/api/pay/return
+  notify-url:  "" #暂时未空

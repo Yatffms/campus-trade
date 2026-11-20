@@ -1,0 +1,165 @@
+### 1. 登录（成功后自动把 token 存进变量）
+POST http://localhost:8080/api/user/login
+Content-Type: application/json
+
+{
+  "username": "verify01",
+  "password": "123456"
+}
+
+> {%
+    client.global.set("token", response.body.data);
+%}
+
+### 2. 商品列表（公开，无需 token，预期 200）
+GET http://localhost:8080/api/item/page?page=1&size=2
+
+### 3. 商品详情（公开，预期 200）
+GET http://localhost:8080/api/item/1
+
+### 4. 商品不存在（预期 code 404）
+GET http://localhost:8080/api/item/999
+
+### 5. 发布商品（需要 token，预期 200）
+POST http://localhost:8080/api/item
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "二手自行车",
+  "description": "九成新",
+  "price": 120.00,
+  "originalPrice": 399.00,
+  "school": "辽宁工程技术大学",
+  "categoryId": 1
+}
+
+### 6. 不带 token 发布（预期 401）
+POST http://localhost:8080/api/item
+Content-Type: application/json
+
+{
+  "title": "x",
+  "price": 1
+}
+
+### 7. 带 token 查用户（预期 200）
+GET http://localhost:8080/api/user/1
+Authorization: Bearer {{token}}
+
+### 8. 错误密码登录（预期“用户名或密码错误”）
+POST http://localhost:8080/api/user/login
+Content-Type: application/json
+
+{
+  "username": "verify01",
+  "password": "wrong"
+}
+
+### 9. 上传图片（需要 token，先跑 #1）
+POST http://localhost:8080/api/upload/image
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=WebAppBoundary
+
+--WebAppBoundary
+Content-Disposition: form-data; name="file"; filename="test.png"
+Content-Type: image/png
+
+< ./test.png
+--WebAppBoundary--
+
+### 10. 收藏商品 1（需要 token，预期 200）
+POST http://localhost:8080/api/favorite/1
+Authorization: Bearer {{token}}
+
+### 11. 再收藏一次（幂等，预期仍 200，数据库只有一条）
+POST http://localhost:8080/api/favorite/1
+Authorization: Bearer {{token}}
+
+### 12. 取消收藏（预期 200，数据库记录被删除）
+DELETE http://localhost:8080/api/favorite/1
+Authorization: Bearer {{token}}
+
+### 13. 收藏不存在的商品（预期 code 404）
+POST http://localhost:8080/api/favorite/999
+Authorization: Bearer {{token}}
+
+### 14. 我的收藏列表（需要 token，先跑 #1）
+GET http://localhost:8080/api/favorite/page?page=1&size=10
+Authorization: Bearer {{token}}
+
+### 15. 发留言（需要 token；先用 verify02 登录，商品 1 的卖家是 verify01）
+POST http://localhost:8080/api/message
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "itemId": 1,
+  "content": "还在吗？"
+}
+
+### 16. 商品留言列表（公开，无需 token）
+GET http://localhost:8080/api/message/item/1?page=1&size=10
+
+### 17. 给自己的商品留言（verify01 登录，预期 code 400）
+POST http://localhost:8080/api/message
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "itemId": 1,
+  "content": "自己留言"
+}
+
+### 18. verify02 登录（下单测试用，会覆盖 token）
+POST http://localhost:8080/api/user/login
+Content-Type: application/json
+
+{
+  "username": "verify02",
+  "password": "123456"
+}
+
+> {%
+    client.global.set("token", response.body.data);
+%}
+
+### 19. verify02 下单商品 1
+POST http://localhost:8080/api/order
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "itemId": 2
+}
+
+> {%
+    client.global.set("orderId", response.body.data);
+%}
+
+### 20. 再下一次商品 1（预期 code 400“已被下单”）
+POST http://localhost:8080/api/order
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "itemId": 1
+}
+### 21. verify01 确认订单
+PUT http://localhost:8080/api/order/{{orderId}}/confirm
+Authorization: Bearer {{token}}
+### 22. verify02 取消订单
+PUT http://localhost:8080/api/order/{{orderId}}/cancel
+Authorization: Bearer {{token}}
+### 23. verify01 修改商品状态
+PUT http://localhost:8080/api/item/3/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+{ "status": 0 }
+
+### 24. verify01 修改商品信息
+PUT http://localhost:8080/api/item/3/edit
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "title": "改过的标题", "description": "改过的描述", "price": "88.00", "originalPrice": "120.00", "coverImage": "", "school": "辽宁工程技术大学", "categoryId": 1 }
